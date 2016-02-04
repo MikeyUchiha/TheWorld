@@ -173,6 +173,9 @@ ClientBin/
 *.publishsettings
 node_modules/
 orleans.codegen.cs
+**/PublishProfiles/**
+**/bower_components/**
+**/wwwroot/lib/**
 
 # RIA/Silverlight projects
 Generated_Code/
