@@ -35,7 +35,7 @@ namespace TheWorld
 #if DEBUG
             services.AddScoped<IMailService, DebugMailService>();
 #else
-            services.AddScoped<IMailService, RealMailService>();
+            //services.AddScoped<IMailService, RealMailService>();
 #endif
         }
 
