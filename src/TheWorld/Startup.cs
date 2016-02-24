@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TheWorld.Services;
 using Microsoft.Extensions.PlatformAbstractions;
+using TheWorld.Models;
+using Microsoft.Extensions.Logging;
 
 namespace TheWorld
 {
@@ -32,6 +34,15 @@ namespace TheWorld
         {
             services.AddMvc();
 
+            services.AddLogging();
+
+            services.AddEntityFramework()
+                .AddSqlServer()
+                .AddDbContext<WorldContext>();
+
+            services.AddTransient<WorldContextSeedData>();
+            services.AddScoped<IWorldRepository, WorldRepository>();
+
 #if DEBUG
             services.AddScoped<IMailService, DebugMailService>();
 #else
@@ -40,9 +51,30 @@ namespace TheWorld
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, WorldContextSeedData seeder, ILoggerFactory loggerFactory)
         {
+            if (env.IsDevelopment())
+            {
+                loggerFactory.AddDebug(LogLevel.Warning);
+
+                app.UseDeveloperExceptionPage();
+
+                app.UseDatabaseErrorPage(options =>
+                {
+                    options.EnableAll();
+                });
+
+                app.UseRuntimeInfoPage(); // default path is /runtimeinfo
+            }
+            else
+            {
+                // specify production behavior for error handling, for example:
+                // app.UseExceptionHandler("/Home/Error");
+                // if nothing is set here, exception will not be handled.
+            }
+
             app.UseStaticFiles();
+
             app.UseMvc(config =>
             {
                 config.MapRoute(
@@ -51,6 +83,8 @@ namespace TheWorld
                     defaults: new { controller = "App", action = "Index" }
                 );
             });
+
+            seeder.EnsureSeedData();
         }
 
         // Entry point for the application.
